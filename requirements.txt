@@ -1,2 +1,2 @@
-wikipedia
-textblob
+git+https://github.com/lucasdnd/Wikipedia.git
+nltk
