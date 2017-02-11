@@ -26,6 +26,8 @@ class Article():
                 continue
             self.generate_questions_for(sec)
 
+    # tokenizes and chunks a sentence
+    # based on a simple grammar
     def get_question_data(self, s):
         tokens = nltk.word_tokenize(s)
         tagged = nltk.pos_tag(tokens)
@@ -41,6 +43,8 @@ class Article():
         result = chunker.parse(tagged)
         return result
 
+    # splits a Wikipedia section into sentences
+    # and then chunks/tokenizes each sentence
     def generate_questions_for(self, sec):
         # Rid of all parentheses for easier processing
         _sec = "".join(re.split('\(', 
@@ -53,6 +57,9 @@ class Article():
 
             self.create_questions(sentence, qdata)
 
+    # given a setence in chunked and original form,
+    # produce the params necessary to create a Question,
+    # and then add that to our Quiz object
     def create_questions(self, raw, chunked):
         for word in chunked:
             if type(word) != tuple:                

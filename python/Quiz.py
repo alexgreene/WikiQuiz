@@ -8,9 +8,11 @@ class Quiz():
         self.locations = []
         self.numbers = []
 
+    # add a question this quiz
     def add(self, question):
         self.questions.append(question)
 
+    # used by the REST endpoint to give the browser 10 questions
     def get_ten_random(self):
         selected = []
         for i in range(0,11):
@@ -18,6 +20,9 @@ class Quiz():
 
         return selected
 
+    # the follow 3 random-related functions
+    # are used to give a pool of wrong answers
+    # to the browser
     def get_random_propers(self):
         if len(self.propers) == 0:
             return []
@@ -48,6 +53,9 @@ class Quiz():
 
         return selected
 
+    # when the parser/chunker matches a word/phrase
+    # to our grammar, lets add it to the pool of potential
+    # wrong answer options
     def add_choice(self, label, word):
         if label == "PROPER":
             self.propers.append(word)

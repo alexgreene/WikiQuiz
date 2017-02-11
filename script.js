@@ -29,6 +29,7 @@ function new_article_query(_data) {
     }
 }
 
+// asynch GET request to server.py
 function make_request(query, _callback) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
@@ -41,11 +42,7 @@ function make_request(query, _callback) {
 }
 
 function load_question() {
-    answer_response_label.style.display = "none";
-    answer_a.style.display = "block";
-    answer_b.style.display = "block";
-    answer_c.style.display = "block";
-    next_question_btn.style.display = "block";
+    loadUIForNextQuestion()
     if (q_idx === 10) {
         q_idx = 0;
         make_request(curQuery, new_article_query);
@@ -82,14 +79,29 @@ function get_wrong_answer(label) {
     }
 }
 
+// extracts a random element from an array
+// logic taken from Stack Overflow answer
 function randomFromArr(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Hides the correct answer from the question text and
+// replaces it with a ? emoji
 function convert_to_redacted(text, answer, label) {
     _answer = answer;
+
+    // when handling locations, the parser reconstructs with comma
+    // spaced from prior word ie IN TAKANEZAWA , JAPAN
+    // rather than IN TAKANEZAWA, JAPAN
+    _answer = answer.replace(' ,',',');
+    
     if (label === "NUMBER") {
+        // if the answer is a number, we want to match
+        // the numerical portion, not $, %, etc
         _answer = answer.replace(/[^0-9]/g,'');
+
+        // if the the number is spelled out
+        // ie. `twelve`, leave it as it is.
         if (_answer === "") {
             _answer = answer;
         }
@@ -118,6 +130,17 @@ function answered_c() {
     handleAnswerResponse(answer_c.innerHTML);
 }
 
+function loadUIForNextQuestion() {
+    answer_response_label.style.display = "none";
+    answer_a.style.display = "block";
+    answer_b.style.display = "block";
+    answer_c.style.display = "block";
+    next_question_btn.style.display = "block";
+}
+
+
+// I borrowed the following from a Stack Overflow answer
+
 /**
  * Shuffles array in place.
  * @param {Array} a items The array containing the items.
@@ -131,6 +154,4 @@ function shuffle(a) {
         a[j] = x;
     }
 }
-
-
 
