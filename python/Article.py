@@ -10,74 +10,57 @@ class Article():
 
     def __init__ (self, name):
         self.name = name
-        page = wiki.page(name)
-        summary = page.summary.encode('ascii', 'ignore')
+        self.page = wiki.page(name)
 
-        _sections = page.sections
+        self.propers = []
+        self.locations = []
+        self.quiz = Quiz([])
 
-        sections = []
-        for section in _sections:
-            sec = page.section(section)
-            if sec is not None:
-                processed = self.process_section(page.section(section))
-                if len(processed) > 0:
-                    sections.append(
-                        (section, processed))
+        self.iterate_sections()
+        self.generate_questions_for(
+            self.page.summary.encode('ascii', 'ignore'))
 
-        print "-----------------------------"
-        print "-----------------------------"
-        print "-----------------------------"
-        print "\n"
+    def iterate_sections(self):
+        # Iterate through article's sections
+        for section in self.page.sections:
+            sec = self.page.section(section).encode('ascii', 'ignore')
+            if sec is None: 
+                continue
+            self.generate_questions_for(sec)
 
-        for word in sections[1][1]:
-            print word
-
-    def process_section(self, s):
-        s = s.replace(")", "(")
-        s = re.split('\(', s)
-        s = "".join(s[0::2])
-        _sentences = sent_tokenize(s)
-
-        sentences = []
-        for sent in _sentences:
-            sentences.append(
-                self.chunk_sentence(sent))
-
-        return sentences
-
-    def chunk_sentence(self, s):
-
+    def get_question_data(self, s):
         tokens = nltk.word_tokenize(s)
         tagged = nltk.pos_tag(tokens)
         grammar = """  
                     NUMBER: {<$>*<CD>+<NN>*}
-                    DATE: {<IN><NUMBER>}
-                    LOCATION: {<NNP>+<,><NNP>+}
-                    PROPER: {<NNP|NNPS>+}
-                    PROPER_FOR_MATCH: {(<NNP|NNPS>+<NN>?(<CC>?<DT>?<IN>?<NNP|NN>)+)+}
-                    PROPER_LIST: {(<PROPER><CC><PROPER><CC>?)+}
-                    THING: {<JJ|JJR>+<NN|NNS>+<CC>?<NN>*}
-                    MATCH: {<THING><.*>?<.*>?<PROPER_FOR_MATCH>+}
+                    DATE: {<IN>(<$>*<CD>+<NN>*)}
+                    LOCATION: {<IN><NNP>+<,|IN><NNP>+}
+                    PROPER: {<NNP|NNPS><NNP|NNPS>+}
+                     """        
+        # HIT!: {<PROPER><NN>?<VBZ|VBN>+}
 
-                    HIT!: {<PROPER><NN>?<VBZ|VBN>+}
-                     """            
-                    
-        # HIT and MATCH will be used for generating questions
-                    
         chunker = nltk.RegexpParser(grammar)
         result = chunker.parse(tagged)
-
         return result
 
+    def generate_questions_for(self, sec):
+        # Rid of all parentheses for easier processing
+        _sec = "".join(re.split('\(', 
+            sec.replace(")", "("))[0::2])
 
+        for sentence in sent_tokenize(_sec):
+            qdata = self.get_question_data(sentence)
+            if len(qdata) >= 30:
+                qdata = []
 
-    def build_quiz(self):
-        first_question = Question(
-            "What color is the sky?",
-            {
-                "correct": "Blue",
-                "incorrect": ["Black", "White", "Yellow"]
-            })
+            self.create_questions(sentence, qdata)
 
-        self.quiz = Quiz([first_question])
+    def create_questions(self, raw, chunked):
+        for word in chunked:
+            if type(word) != tuple:
+                target = []
+                for y in word:
+                    target.append(y[0])
+                self.quiz.add(
+                    Question(raw, " ".join(target)))
 
