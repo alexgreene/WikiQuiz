@@ -1,5 +1,8 @@
 # WikiQuiz
 
+![alt tag](http://i.imgur.com/Bx7l18S.png)
+
+
 ###Potential Future Improvements:
 Choosing more appropriate multiple-choice options, especially for numbers 
 
