@@ -13,15 +13,10 @@
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- FONT
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
-
   <!-- CSS
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <link rel="stylesheet" href="css/normalize.css">
   <link rel="stylesheet" href="css/skeleton.css">
-
 
 </head>
 <body>
@@ -31,32 +26,40 @@
 
   <div class="container">
     <div class="row">
-      <div class="twelve column" style="margin-top: 5%">
+      <div class="two columns" style="margin-top: 5%">
         <h5>WikiQuiz</h5>
- 
+      </div>
+      <div class="ten columns" style="margin-top: 5%">
+        <div class="eight columns">
+          <input class="u-full-width" id="article_name_input" type="text" placeholder="Type article name (ie. Honda, starfish, baseball, Harry Potter)">
+        </div>
+        <div class="two columns">
+          <button onclick="new_article_query()">Quiz Me!</button>
+        </div>
       </div>
     </div>
-
     <div class="row">
       <div class="twelve column" style="margin-top: 5%">
         
-        <h3>Article Title</h3>
-        <p>As I stand out here in the wonders of the unknown at Hadley, I sort of realize there’s a fundamental truth to our nature, Man must explore . . . and this is exploration at its greatest.
-
-        The Earth was small, light blue, and so touchingly alone, our home that must be defended like a holy relic. The Earth was absolutely round. I believe I never knew what the word round meant until I saw Earth from space.
-
-        The path of a cosmonaut is not an easy, triumphant march to glory. You have to get to know the meaning not just of joy but also of grief, before being allowed in the spacecraft cabin.
-
-        That's one small step for [a] man, one giant leap for mankind.
-
-        As I stand out here in the wonders of the unknown at Hadley, I sort of realize there’s a fundamental truth to our nature, Man must explore . . . and this is exploration at its greatest.</p>
+        <h3 id="article_name">Welcome!</h3>
+        <p id="question_body">This is WikiQuiz. Enter the name of a wikipedia article at the top of this page, and we'll generate some fill-in-the-blank questions to test your knowledge of the dates/things/people/places it mentions. If the question doesn't seem like it was generated correctly, just click next question!</p>
       </div>
 
-      <button>Quiz Me!</button>
+      <div class="row">
+
+        <button id="answer_a" onclick="answered_a()">A</button>
+        <button id="answer_b" onclick="answered_b()">B</button>
+        <button id="answer_c" onclick="answered_c()">C</button>
+      </div>
+
+      <div class="row">
+        <button onclick="load_question()">Next Question ></button>
+      </div>
     </div>
   </div>
 
 <!-- End Document
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 </body>
+<script src="script.js"></script>
 </html>

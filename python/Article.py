@@ -12,8 +12,6 @@ class Article():
         self.name = name
         self.page = wiki.page(name)
 
-        self.propers = []
-        self.locations = []
         self.quiz = Quiz([])
 
         self.iterate_sections()
@@ -31,13 +29,13 @@ class Article():
     def get_question_data(self, s):
         tokens = nltk.word_tokenize(s)
         tagged = nltk.pos_tag(tokens)
-        grammar = """  
+        grammar =   """  
                     NUMBER: {<$>*<CD>+<NN>*}
-                    DATE: {<IN>(<$>*<CD>+<NN>*)}
                     LOCATION: {<IN><NNP>+<,|IN><NNP>+}
                     PROPER: {<NNP|NNPS><NNP|NNPS>+}
-                     """        
+                    """        
         # HIT!: {<PROPER><NN>?<VBZ|VBN>+}
+        # DATE: {<IN>(<$>*<CD>+<NN>*)}
 
         chunker = nltk.RegexpParser(grammar)
         result = chunker.parse(tagged)
@@ -57,10 +55,13 @@ class Article():
 
     def create_questions(self, raw, chunked):
         for word in chunked:
-            if type(word) != tuple:
+            if type(word) != tuple:                
                 target = []
                 for y in word:
                     target.append(y[0])
+                phrase = " ".join(target)
                 self.quiz.add(
-                    Question(raw, " ".join(target)))
+                    Question(word.label(), raw, phrase))
+                self.quiz.add_choice(word.label(), phrase)
+
 
