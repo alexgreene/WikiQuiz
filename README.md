@@ -3,6 +3,9 @@
 ![alt tag](http://i.imgur.com/Bx7l18S.png)
 
 
+###To run:
+requirements.txt contains the libraries/modules you'll need. run server.py to get the Flask endpoints working, and then open up index.html - that's all!
+
 ###Potential Future Improvements:
 Choosing more appropriate multiple-choice options, especially for numbers 
 
