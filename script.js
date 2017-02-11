@@ -24,7 +24,7 @@ function new_article_query(_data) {
     } else {
         article_name.innerHTML = search.value;
         data = _data;
-        console.log(data);
+        //console.log(data);
         load_question();
     }
 }
@@ -50,8 +50,13 @@ function load_question() {
         q_idx = 0;
         make_request(curQuery, new_article_query);
     } else {
-        question_body.innerHTML = data['questions'][q_idx][1];
         label =  data['questions'][q_idx][0];
+
+        question_body.innerHTML = convert_to_redacted(
+            data['questions'][q_idx][1], 
+            data['questions'][q_idx][2],
+            label);
+        
         answers = [];
         correct_answer = data['questions'][q_idx][2];
         answers.push(correct_answer);
@@ -81,33 +86,36 @@ function randomFromArr(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function answered_a() {
-    console.log(correct_answer);
-    console.log(answer_a.innerHTML);
-    if (correct_answer === answer_a.innerHTML){
+function convert_to_redacted(text, answer, label) {
+    _answer = answer;
+    if (label === "NUMBER") {
+        _answer = answer.replace(/[^0-9]/g,'');
+        if (_answer === "") {
+            _answer = answer;
+        }
+    }
+    return text.replace(_answer, "❓");
+}
+
+function handleAnswerResponse(answer_given) {
+    if (correct_answer === answer_given){
         answer_response_label.innerHTML = "Correct!";
     } else {
         answer_response_label.innerHTML = "That's wrong...";
     }
     answer_response_label.style.display = "block";
+}
+
+function answered_a() {
+    handleAnswerResponse(answer_a.innerHTML);
 }
 
 function answered_b() {
-    if (correct_answer === answer_b.innerHTML){
-        answer_response_label.innerHTML = "Correct!";
-    } else {
-        answer_response_label.innerHTML = "That's wrong...";
-    }
-    answer_response_label.style.display = "block";
+    handleAnswerResponse(answer_b.innerHTML);
 }
 
 function answered_c() {
-    if (correct_answer === answer_c.innerHTML){
-        answer_response_label.innerHTML = "Correct!";
-    } else {
-        answer_response_label.innerHTML = "That's wrong...";
-    }
-    answer_response_label.style.display = "block";
+    handleAnswerResponse(answer_c.innerHTML);
 }
 
 /**
