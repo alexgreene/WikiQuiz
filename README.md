@@ -8,6 +8,7 @@ requirements.txt contains the libraries/modules you'll need. You'll also need to
 
     >>> import nltk
     >>> nltk.download('averaged_perceptron_tagger')
+    >>> nltk.download('punkt')
 
 Run server.py to get the Flask endpoints working, and then open up index.html - that's all!
 
