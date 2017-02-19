@@ -48,7 +48,7 @@ class Article():
     def generate_questions_for(self, sec):
         # Rid of all parentheses for easier processing
         _sec = "".join(re.split('\(', 
-            sec.replace(")", "("))[0::2])
+            sec.decode("utf-8").replace(")", "("))[0::2])
 
         for sentence in sent_tokenize(_sec):
             qdata = self.get_question_data(sentence)
