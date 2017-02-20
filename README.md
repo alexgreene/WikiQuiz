@@ -6,7 +6,7 @@
 Credit to Volley (http://volley.com) for requesting/inspiring this project!
 
 ##To run:
-requirements.txt contains the libraries/modules you'll need. You'll also need to download some data so that the nltk library works. To do this, start the Python console (ie. type `python` on the command line) and then: 
+requirements.txt contains the libraries/modules you'll need (It's come to my attention that the Wikipedia library has a bug, so I recommend this instead: http://stackoverflow.com/questions/34869597/wikipedia-api-for-python#35122688). You'll also need to download some data so that the nltk library works. To do this, start the Python console (ie. type `python` on the command line) and then: 
 
     >>> import nltk
     >>> nltk.download('averaged_perceptron_tagger')
