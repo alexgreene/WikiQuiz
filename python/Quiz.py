@@ -62,7 +62,9 @@ class Quiz():
 
 
 def _sample(population, number):
-    if len(population) <= number:
+    if not population:
+        return []
+    elif len(population) <= number:
         return [random.choice(population) for _ in range(number)]
     else:
         return random.sample(population, number)
