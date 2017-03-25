@@ -56,9 +56,10 @@ function load_question() {
         
         answers = [];
         correct_answer = data['questions'][q_idx][2];
+        var wrong_answers = get_wrong_answers(label, correct_answer);
         answers.push(correct_answer);
-        answers.push(get_wrong_answer(label));
-        answers.push(get_wrong_answer(label));
+        answers.push(wrong_answers[0]);
+        answers.push(wrong_answers[1]);
         shuffle(answers);
 
         answer_a.innerHTML = answers[0];
@@ -67,6 +68,24 @@ function load_question() {
 
         q_idx += 1;
     }
+}
+
+function get_wrong_answers(label, correct_answer) {
+  var max_num_retries = 10;
+  var wrong_answer_1 = get_wrong_answer(label);
+  var wrong_answer_2 = get_wrong_answer(label);
+
+  for (var i = 0; i < max_num_retries; i++) {
+    var any_answers_same = wrong_answer_1 === wrong_answer_2 || wrong_answer_1 === correct_answer || wrong_answer_2 === correct_answer;
+    if (!any_answers_same) {
+      break;
+    }
+
+    wrong_answer_1 = get_wrong_answer(label);
+    wrong_answer_2 = get_wrong_answer(label);
+  }
+
+  return [wrong_answer_1, wrong_answer_2];
 }
 
 function get_wrong_answer(label) {
