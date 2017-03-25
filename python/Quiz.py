@@ -63,6 +63,6 @@ class Quiz():
 
 def _sample(population, number):
     if len(population) <= number:
-        return population
+        return [random.choice(population) for _ in range(number)]
     else:
         return random.sample(population, number)
