@@ -14,10 +14,7 @@ class Quiz():
 
     # used by the REST endpoint to give the browser 10 questions
     def get_ten_random(self):
-        if len(self.questions) <= 10:
-            return self.questions
-        else:
-            return random.sample(self.questions, 10)
+        return _sample(self.questions, 10)
 
     # the follow 3 random-related functions
     # are used to give a pool of wrong answers
@@ -64,4 +61,8 @@ class Quiz():
             self.numbers.append(word)
 
 
-
+def _sample(population, number):
+    if len(population) <= number:
+        return population
+    else:
+        return random.sample(population, number)
