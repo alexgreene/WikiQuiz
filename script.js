@@ -48,14 +48,14 @@ function load_question() {
         make_request(curQuery, new_article_query);
     } else {
         label =  data['questions'][q_idx][0];
+        correct_answer = data['questions'][q_idx][2];
 
         question_body.innerHTML = convert_to_redacted(
-            data['questions'][q_idx][1], 
-            data['questions'][q_idx][2],
+            data['questions'][q_idx][1],
+            correct_answer,
             label);
         
         answers = [];
-        correct_answer = data['questions'][q_idx][2];
         answers.push(correct_answer);
         answers.push(get_wrong_answer(label));
         answers.push(get_wrong_answer(label));
