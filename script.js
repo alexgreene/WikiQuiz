@@ -50,10 +50,13 @@ function load_question() {
         label =  data['questions'][q_idx][0];
         correct_answer = data['questions'][q_idx][2];
 
-        question_body.innerHTML = convert_to_redacted(
+        var redacted = convert_to_redacted(
             data['questions'][q_idx][1],
             correct_answer,
             label);
+
+        question_body.innerHTML = redacted.text;
+        correct_answer = redacted.answer;
         
         answers = [];
         answers.push(correct_answer);
@@ -106,7 +109,14 @@ function convert_to_redacted(text, answer, label) {
             _answer = answer;
         }
     }
-    return text.replace(_answer, "❓");
+
+    var redacted_text = text.replace(_answer, "❓");
+    var redacted_answer = _answer;
+
+    return {
+      text: redacted_text,
+      answer: redacted_answer,
+    };
 }
 
 function handleAnswerResponse(answer_given) {
