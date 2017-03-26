@@ -101,7 +101,7 @@ function convert_to_redacted(text, answer, label) {
     if (label === "NUMBER") {
         // if the answer is a number, we want to match
         // the numerical portion, not $, %, etc
-        _answer = answer.replace(/[^0-9]/g,'');
+        _answer = answer.replace(/[^0-9.,]/g,'');
 
         // if the the number is spelled out
         // ie. `twelve`, leave it as it is.
