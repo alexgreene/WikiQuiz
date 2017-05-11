@@ -48,14 +48,17 @@ function load_question() {
         make_request(curQuery, new_article_query);
     } else {
         label =  data['questions'][q_idx][0];
+        correct_answer = data['questions'][q_idx][2];
 
-        question_body.innerHTML = convert_to_redacted(
-            data['questions'][q_idx][1], 
-            data['questions'][q_idx][2],
+        var redacted = convert_to_redacted(
+            data['questions'][q_idx][1],
+            correct_answer,
             label);
+
+        question_body.innerHTML = redacted.text;
+        correct_answer = redacted.answer;
         
         answers = [];
-        correct_answer = data['questions'][q_idx][2];
         answers.push(correct_answer);
         answers.push(get_wrong_answer(label));
         answers.push(get_wrong_answer(label));
@@ -98,7 +101,7 @@ function convert_to_redacted(text, answer, label) {
     if (label === "NUMBER") {
         // if the answer is a number, we want to match
         // the numerical portion, not $, %, etc
-        _answer = answer.replace(/[^0-9]/g,'');
+        _answer = answer.replace(/[^0-9.,]/g,'');
 
         // if the the number is spelled out
         // ie. `twelve`, leave it as it is.
@@ -106,7 +109,14 @@ function convert_to_redacted(text, answer, label) {
             _answer = answer;
         }
     }
-    return text.replace(_answer, "❓");
+
+    var redacted_text = text.replace(_answer, "❓");
+    var redacted_answer = _answer;
+
+    return {
+      text: redacted_text,
+      answer: redacted_answer,
+    };
 }
 
 function handleAnswerResponse(answer_given) {
