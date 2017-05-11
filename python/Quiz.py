@@ -14,44 +14,19 @@ class Quiz():
 
     # used by the REST endpoint to give the browser 10 questions
     def get_ten_random(self):
-        selected = []
-        for i in range(0,11):
-            selected.append(random.choice(self.questions))
-
-        return selected
+        return _sample(self.questions, 10)
 
     # the follow 3 random-related functions
     # are used to give a pool of wrong answers
     # to the browser
     def get_random_propers(self):
-        if len(self.propers) == 0:
-            return []
-
-        selected = []
-        for i in range(0,30):
-            selected.append(random.choice(self.propers))
-
-        return selected
+        return _sample(self.propers, 30)
 
     def get_random_locations(self):
-        if len(self.locations) == 0:
-            return []
-
-        selected = []
-        for i in range(0,30):
-            selected.append(random.choice(self.locations))
-
-        return selected
+        return _sample(self.locations, 30)
 
     def get_random_numbers(self):
-        if len(self.numbers) == 0:
-            return []
-
-        selected = []
-        for i in range(0,30):
-            selected.append(random.choice(self.numbers))
-
-        return selected
+        return _sample(self.numbers, 30)
 
     # when the parser/chunker matches a word/phrase
     # to our grammar, lets add it to the pool of potential
@@ -65,4 +40,10 @@ class Quiz():
             self.numbers.append(word)
 
 
-
+def _sample(population, number):
+    if not population:
+        return []
+    elif len(population) <= number:
+        return [random.choice(population) for _ in range(number)]
+    else:
+        return random.sample(population, number)
