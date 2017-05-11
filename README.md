@@ -27,8 +27,5 @@ Some of the questions presented currently lack context about what the question i
 
 _ie. references to 'they' or 'he' would be replaced by what those pronouns are actually referring to._
 
-## Known limitations:
-The Python script will not handle certain Wikipedia pages correctly ("Harry Potter" for example). Most likely due to how I'm iterating through the parsed token tree in create_questions in Article.py. Certain articles have disambiguations and I decided to leave handling these out of scope. For both of the above you'll see on the console that I'm just returning a 500 error. If working further on the project I'd fix these and create less overarching exception handling than the try/except in server.py
-
 
 

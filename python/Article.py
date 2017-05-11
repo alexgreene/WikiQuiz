@@ -14,20 +14,25 @@ class Article():
 
         self.quiz = Quiz([])
 
-        self.iterate_sections()
         self.generate_questions_for(
-            self.page.summary.encode('ascii', 'ignore'))
+            self.page.content.encode('ascii', 'ignore'))
 
-    def iterate_sections(self):
-        # Iterate through article's sections
-        for section in self.page.sections:
-            sec = self.page.section(section).encode('ascii', 'ignore')
-            if sec is None: 
-                continue
-            self.generate_questions_for(sec)
+    ''' 
+    NOT CURRENTLY USED, but maye be useful at a later point when knowing the
+    section a question was sourced from might be of use.
+    '''
+    # def iterate_sections(self):
+    #     # Iterate through article's sections
+    #     for section in self.page.sections:
+    #         print section
+    #         sec = self.page.section(section).encode('ascii', 'ignore')
+    #         if sec is None: 
+    #             continue
+    #         self.generate_questions_for(sec)
 
-    # tokenizes and chunks a sentence
-    # based on a simple grammar
+    '''
+    tokenizes and chunks a sentence based on a simple grammar
+    '''
     def get_question_data(self, s):
         tokens = nltk.word_tokenize(s)
         tagged = nltk.pos_tag(tokens)
@@ -43,8 +48,10 @@ class Article():
         result = chunker.parse(tagged)
         return result
 
-    # splits a Wikipedia section into sentences
-    # and then chunks/tokenizes each sentence
+    '''
+    splits a Wikipedia section into sentences and then chunks/tokenizes each
+    sentence
+    '''
     def generate_questions_for(self, sec):
         # Rid of all parentheses for easier processing
         _sec = "".join(re.split('\(', 
@@ -57,9 +64,10 @@ class Article():
 
             self.create_questions(sentence, qdata)
 
-    # given a setence in chunked and original form,
-    # produce the params necessary to create a Question,
-    # and then add that to our Quiz object
+    '''
+    given a setence in chunked and original form, produce the params necessary
+    to create a Question, and then add that to our Quiz object
+    '''
     def create_questions(self, raw, chunked):
         for word in chunked:
             if type(word) != tuple:                

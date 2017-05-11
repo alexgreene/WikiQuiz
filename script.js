@@ -77,34 +77,52 @@ function load_question() {
 
 function get_wrong_answers(label, correct_answer) {
   var max_num_retries = 10;
-  var wrong_answer_1 = get_wrong_answer(label);
-  var wrong_answer_2 = get_wrong_answer(label);
+  var wrong_answer_1 = get_wrong_answer(label, correct_answer);
+  var wrong_answer_2 = get_wrong_answer(label, correct_answer);
 
   for (var i = 0; i < max_num_retries; i++) {
-    var any_answers_same = wrong_answer_1 === wrong_answer_2 || wrong_answer_1 === correct_answer || wrong_answer_2 === correct_answer;
+    var any_answers_same = 
+        wrong_answer_1 === wrong_answer_2 || 
+        wrong_answer_1 === correct_answer || 
+        wrong_answer_2 === correct_answer;
+
     if (!any_answers_same) {
       break;
     }
 
-    wrong_answer_1 = get_wrong_answer(label);
-    wrong_answer_2 = get_wrong_answer(label);
+    wrong_answer_1 = get_wrong_answer(label, correct_answer);
+    wrong_answer_2 = get_wrong_answer(label, correct_answer);
   }
 
   return [wrong_answer_1, wrong_answer_2];
 }
 
-function get_wrong_answer(label) {
+function get_wrong_answer(label, correctAnswer) {
     if (label === "LOCATION") {
         return randomFromArr(data['locations']);
     } else if (label === "PROPER") {
         return randomFromArr(data['propers']);
     } else {
-        return randomFromArr(data['numbers']);
+        console.log(correctAnswer);
+        idx = Array.from(new Set(data['numbers'])).sort(function (a, b) {
+                return a - b;  
+            }).findIndex(function(i) {
+                return i > correctAnswer;
+        });
+        randomIdx = getRandomInt(idx - 2, idx + 2);
+        if (randomIdx > data['numbers'].length - 1) {
+            randomIdx = data['numbers'].length - 1;
+        }
+        else if (randomIdx < 0) { randomIdx = 0; }
+
+        console.log(Array.from(new Set(data['numbers'])).sort(function (a, b) {
+                return a - b;  
+            }), idx, randomIdx);
+        return data['numbers'][randomIdx];
     }
 }
 
 // extracts a random element from an array
-// logic taken from Stack Overflow answer
 function randomFromArr(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -170,11 +188,10 @@ function loadUIForNextQuestion() {
 }
 
 
-// I borrowed the following from a Stack Overflow answer
-
 /**
  * Shuffles array in place.
  * @param {Array} a items The array containing the items.
+ * note: borrowed from StackOverflow answer
  */
 function shuffle(a) {
     var j, x, i;
@@ -184,5 +201,9 @@ function shuffle(a) {
         a[i - 1] = a[j];
         a[j] = x;
     }
+}
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 

@@ -20,13 +20,13 @@ class Quiz():
     # are used to give a pool of wrong answers
     # to the browser
     def get_random_propers(self):
-        return _sample(self.propers, 30)
+        return _sample(self.propers, 100)
 
     def get_random_locations(self):
-        return _sample(self.locations, 30)
+        return _sample(self.locations, 100)
 
     def get_random_numbers(self):
-        return _sample(self.numbers, 30)
+        return _sample(self.numbers, 100)
 
     # when the parser/chunker matches a word/phrase
     # to our grammar, lets add it to the pool of potential
