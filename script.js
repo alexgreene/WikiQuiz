@@ -19,12 +19,13 @@ var correct_answer;
 
 function new_article_query(_data) {
     if (!_data) {
+        /* we've just made a search, let's get the data */
         make_request(search.value, new_article_query);
         curQuery = search.value;
     } else {
         article_name.innerHTML = search.value;
         data = _data;
-        //console.log(data);
+        /* we've recieved the data, let's load the first question */
         load_question();
     }
 }
@@ -42,43 +43,54 @@ function make_request(query, _callback) {
 }
 
 function load_question() {
-    loadUIForNextQuestion()
-    if (q_idx === 10) {
+    resetUIForNextQuestion()
+    if (q_idx === 10) { /* if we've loaded all 10 questions, we need more data */
         q_idx = 0;
         make_request(curQuery, new_article_query);
     } else {
-        label =  data['questions'][q_idx][0];
-        correct_answer = data['questions'][q_idx][2];
+        sentence = data['sentences'][q_idx];
+        text = sentence[0];
+        all_gaps = sentence[1]
+        gap_index = getRandomInt(0, all_gaps.length-1);
+        correct = all_gaps[gap_index];
+        correct_answer = correct[1];
+        label = correct[0];
 
         var redacted = convert_to_redacted(
-            data['questions'][q_idx][1],
-            correct_answer,
+            text,
+            correct[1],
             label);
 
         question_body.innerHTML = redacted.text;
-        correct_answer = redacted.answer;
         
         answers = [];
-        correct_answer = data['questions'][q_idx][2];
-        var wrong_answers = get_wrong_answers(label, correct_answer);
+        correct_answer_modified = correct[2] /* use the modified answer for the multiple choice */
 
-        answers.push(correct_answer);
-        answers.push(wrong_answers[0]);
-        answers.push(wrong_answers[1]);
-        shuffle(answers);
+        var wrong_answers;
+        try {
+            wrong_answers = get_wrong_answers(label, correct_answer_modified, all_gaps, gap_index); 
+            answers.push(correct_answer_modified);
+            answers.push(wrong_answers[0]);
+            answers.push(wrong_answers[1]);
+            shuffle(answers);
 
-        answer_a.innerHTML = answers[0];
-        answer_b.innerHTML = answers[1];
-        answer_c.innerHTML = answers[2];
-
+            answer_a.innerHTML = answers[0];
+            answer_b.innerHTML = answers[1];
+            answer_c.innerHTML = answers[2];
+        }
+        catch (err) {
+            q_idx += 1;
+            load_question();
+        }
         q_idx += 1;
     }
 }
 
-function get_wrong_answers(label, correct_answer) {
-  var max_num_retries = 10;
-  var wrong_answer_1 = get_wrong_answer(label, correct_answer);
-  var wrong_answer_2 = get_wrong_answer(label, correct_answer);
+function get_wrong_answers(label, correct_answer, other_gaps, gap_index) {
+  var max_num_retries = 20;
+
+  var wrong_answer_1 = get_wrong_answer(label, correct_answer, other_gaps, gap_index).toString();
+  var wrong_answer_2 = get_wrong_answer(label, correct_answer, other_gaps, gap_index).toString();
 
   for (var i = 0; i < max_num_retries; i++) {
     var any_answers_same = 
@@ -90,36 +102,75 @@ function get_wrong_answers(label, correct_answer) {
       break;
     }
 
-    wrong_answer_1 = get_wrong_answer(label, correct_answer);
-    wrong_answer_2 = get_wrong_answer(label, correct_answer);
+    wrong_answer_1 = get_wrong_answer(label, correct_answer, other_gaps, gap_index).toString();
+    wrong_answer_2 = get_wrong_answer(label, correct_answer, other_gaps, gap_index).toString();
+  }
+
+  if (any_answers_same) {
+    // assuming that these are bounded year values that have convereged.
+    to_ret = [(parseInt(wrong_answer_1) + 1).toString(), (parseInt(wrong_answer_2) - 1).toString()];
   }
 
   return [wrong_answer_1, wrong_answer_2];
 }
 
-function get_wrong_answer(label, correctAnswer) {
+function get_wrong_answer(label, correct_answer, other_gaps, gap_index) {
     if (label === "LOCATION") {
         return randomFromArr(data['locations']);
     } else if (label === "PROPER") {
-        return randomFromArr(data['propers']);
+        return randomFromArr(other_gaps)[1];
     } else {
-        console.log(correctAnswer);
-        idx = Array.from(new Set(data['numbers'])).sort(function (a, b) {
-                return a - b;  
-            }).findIndex(function(i) {
-                return i > correctAnswer;
-        });
-        randomIdx = getRandomInt(idx - 2, idx + 2);
-        if (randomIdx > data['numbers'].length - 1) {
-            randomIdx = data['numbers'].length - 1;
-        }
-        else if (randomIdx < 0) { randomIdx = 0; }
+        num_as_str = correct_answer.toString().replace(",", "").replace("S", "");
+        num = cleanUpNum(correct_answer);
+        if (num.toString() === num_as_str) {
+            /* the answer is an integer */
 
-        console.log(Array.from(new Set(data['numbers'])).sort(function (a, b) {
-                return a - b;  
-            }), idx, randomIdx);
-        return data['numbers'][randomIdx];
+            if (mightBeYear(num)) { 
+                /* the answer is likely a year */
+                /* now find the lower bound based on other years in the sentence */
+                lower_bound = num - 50;
+                for (var i = 0; i < gap_index; i++) {
+                    var to_compare = cleanUpNum(other_gaps[i][2]);
+                    if (mightBeYear(to_compare) && to_compare > lower_bound)  {
+                        lower_bound = to_compare +1;
+                    }
+                }
+
+                /* find the upper bound */
+                upper_bound = num + 30;
+                for (var i = gap_index + 1; i < other_gaps.length; i++) {
+                    var to_compare = cleanUpNum(other_gaps[i][2])
+                    if (mightBeYear(to_compare) && to_compare < upper_bound)  {
+                        upper_bound = to_compare -1;
+                    }
+                }
+
+                if (upper_bound - lower_bound < 4) {
+                    throw "Range too small" 
+                }
+
+                generated = num + (getRandomInt(1, 10) * posOrNeg());
+                generated = Math.min(upper_bound, generated);
+                generated = Math.max(lower_bound, generated);
+
+                if (num <= 2017) { return Math.min(generated, 2017); }
+
+                return generated;
+            }
+            to_ret = parseInt(Math.max(0, num + (getRandomInt(num * .01, num * 2) * posOrNeg())));
+            if (to_ret > 30 && to_ret < 45) { to_ret = 31; }
+            return to_ret;
+
+        }
+        else {
+           return parseFloat(num_as_str) + (parseFloat(num_as_str) * .01 * posOrNeg());
+        }
+        
     }
+}
+
+function mightBeYear(num) {
+    return (num >= 1400 && num < 2030);
 }
 
 // extracts a random element from an array
@@ -135,12 +186,12 @@ function convert_to_redacted(text, answer, label) {
     // when handling locations, the parser reconstructs with comma
     // spaced from prior word ie IN TAKANEZAWA , JAPAN
     // rather than IN TAKANEZAWA, JAPAN
-    _answer = answer.replace(' ,',',');
+    _answer = answer.toString().replace(' ,',',');
     
     if (label === "NUMBER") {
         // if the answer is a number, we want to match
         // the numerical portion, not $, %, etc
-        _answer = answer.replace(/[^0-9.,]/g,'');
+        _answer = answer.toString().replace(/[^0-9.,]/g,'');
 
         // if the the number is spelled out
         // ie. `twelve`, leave it as it is.
@@ -179,7 +230,7 @@ function answered_c() {
     handleAnswerResponse(answer_c.innerHTML);
 }
 
-function loadUIForNextQuestion() {
+function resetUIForNextQuestion() {
     answer_response_label.style.display = "none";
     answer_a.style.display = "block";
     answer_b.style.display = "block";
@@ -207,3 +258,16 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function posOrNeg() {
+    z = getRandomInt(0,2)
+    if (z > 0) {
+        return 1;
+    }
+    else {
+        return -1;
+    }
+}
+
+function cleanUpNum(num){
+    return parseInt(num.toString().replace(",", "").replace("S", ""));
+}

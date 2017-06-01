@@ -3,8 +3,10 @@ import nltk
 from nltk.tokenize import sent_tokenize
 import re
 
+import text2num as t2n
+
 from Quiz import Quiz
-from Question import Question
+from QuestionSentence import QuestionSentence
 
 class Article():
 
@@ -38,9 +40,9 @@ class Article():
         tagged = nltk.pos_tag(tokens)
         grammar =   """  
                     NUMBER: {<$>*<CD>+<NN>*}
-                    LOCATION: {<IN><NNP>+<,|IN><NNP>+}
                     PROPER: {<NNP|NNPS><NNP|NNPS>+}
-                    """        
+                    """       
+        # LOCATION: {<IN><NNP>+<,|IN><NNP>+} 
         # HIT!: {<PROPER><NN>?<VBZ|VBN>+}
         # DATE: {<IN>(<$>*<CD>+<NN>*)}
 
@@ -58,25 +60,58 @@ class Article():
             sec.decode("utf-8").replace(")", "("))[0::2])
 
         for sentence in sent_tokenize(_sec):
-            qdata = self.get_question_data(sentence)
-            if len(qdata) >= 30:
-                qdata = []
+            if "==" not in sentence:
+                qdata = self.get_question_data(sentence)
+                if len(qdata) >= 75 and len(qdata) <= 150:
+                    qdata = []
 
-            self.create_questions(sentence, qdata)
+                self.create_questions(sentence, qdata)
 
     '''
     given a setence in chunked and original form, produce the params necessary
     to create a Question, and then add that to our Quiz object
     '''
-    def create_questions(self, raw, chunked):
+    def create_questions(self, sentence, chunked):
+        gaps = []
         for word in chunked:
             if type(word) != tuple:                
                 target = []
                 for y in word:
                     target.append(y[0])
-                phrase = " ".join(target)
-                self.quiz.add(
-                    Question(word.label(), raw, phrase))
-                self.quiz.add_choice(word.label(), phrase)
+                orig_phrase = " ".join(target)
 
+                if word.label() == "NUMBER":
+                    modified_phrase = orig_phrase[:]
 
+                    try:
+                        # convert spelled out word to numerical value
+                        modified_phrase = t2n.text2num(phrase)
+                    except:
+                        try:
+                            test = int(modified_phrase) + float(modified_phrase)
+                        except:
+                            # if the word could not be converted and 
+                            # was not already numerical, ignore it
+                            continue
+
+                    if self.probably_range(modified_phrase):
+                        return
+
+                    gaps.append((word.label(), orig_phrase, modified_phrase))
+                elif word.label() in ["PROPER", "LOCATION"]:
+                    gaps.append((word.label(), orig_phrase))
+
+        if len(gaps) >= 2 and len(gaps) == len(set(gaps)):
+            gaps_filtered = [gap for gap in gaps if gap[0] == 'NUMBER']
+            if len(gaps_filtered) and len(gaps) - len(gaps_filtered) > 2:
+                self.quiz.add(QuestionSentence(sentence, gaps_filtered))
+
+    '''
+    Wikipedia returns non-hyphenated number ranges, so we need to check for mushed together years
+    and remove them. Not a complete solution to the problem, but most of the incidents are years
+    ''' 
+    def probably_range(self, val):
+        s = str(val)
+        if s.count("19") > 1 or s.count("20") > 1 or (s.count("19") == 1 and s.count("20") == 1):
+            return True
+        return False

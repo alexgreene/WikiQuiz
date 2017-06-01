@@ -6,7 +6,6 @@ class Quiz():
         self.questions = questions
         self.propers = []
         self.locations = []
-        self.numbers = []
 
     # add a question this quiz
     def add(self, question):
@@ -25,19 +24,14 @@ class Quiz():
     def get_random_locations(self):
         return _sample(self.locations, 100)
 
-    def get_random_numbers(self):
-        return _sample(self.numbers, 100)
-
     # when the parser/chunker matches a word/phrase
-    # to our grammar, lets add it to the pool of potential
+    # to our grammar, let's add it to the pool of potential
     # wrong answer options
     def add_choice(self, label, word):
         if label == "PROPER":
             self.propers.append(word)
         elif label == "LOCATION":
             self.locations.append(word)
-        elif label == "NUMBER":
-            self.numbers.append(word)
 
 
 def _sample(population, number):
