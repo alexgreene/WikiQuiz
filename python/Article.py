@@ -40,9 +40,10 @@ class Article():
         tagged = nltk.pos_tag(tokens)
         grammar =   """  
                     NUMBER: {<$>*<CD>+<NN>*}
+                    LOCATION: {<IN><NNP>+<,|IN><NNP>+} 
                     PROPER: {<NNP|NNPS><NNP|NNPS>+}
                     """       
-        # LOCATION: {<IN><NNP>+<,|IN><NNP>+} 
+        # 
         # HIT!: {<PROPER><NN>?<VBZ|VBN>+}
         # DATE: {<IN>(<$>*<CD>+<NN>*)}
 
@@ -98,11 +99,11 @@ class Article():
                         return
 
                     gaps.append((word.label(), orig_phrase, modified_phrase))
-                elif word.label() in ["PROPER", "LOCATION"]:
-                    gaps.append((word.label(), orig_phrase))
+                elif word.label() in ["LOCATION", "PROPER"]: 
+                    gaps.append((word.label(), orig_phrase, orig_phrase))
 
         if len(gaps) >= 2 and len(gaps) == len(set(gaps)):
-            gaps_filtered = [gap for gap in gaps if gap[0] == 'NUMBER']
+            gaps_filtered = [gap for gap in gaps if gap[0] == 'NUMBER' or gap[0] == 'LOCATION']
             if len(gaps_filtered) and len(gaps) - len(gaps_filtered) > 2:
                 self.quiz.add(QuestionSentence(sentence, gaps_filtered))
 

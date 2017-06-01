@@ -116,7 +116,10 @@ function get_wrong_answers(label, correct_answer, other_gaps, gap_index) {
 
 function get_wrong_answer(label, correct_answer, other_gaps, gap_index) {
     if (label === "LOCATION") {
-        return randomFromArr(data['locations']);
+        return randomFromArr(['NYC', 'Tokyo', 'London', 'Boston', 'Miami', 
+            'San Luis Obispo', 'Sacramento', 'San Francisco', 'Austin', 'Kiev', 
+            'Libya', 'Tel Aviv']);
+        
     } else if (label === "PROPER") {
         return randomFromArr(other_gaps)[1];
     } else {
