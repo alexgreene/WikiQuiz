@@ -12,7 +12,6 @@ var answer_response_label = document.getElementById('answer_response_label');
     answer_c.style.display = "none";
     next_question_btn.style.display = "none";
 
-var data;
 var q_idx = 0;
 var curQuery;
 var correct_answer;
@@ -24,7 +23,7 @@ function new_article_query(_data) {
         curQuery = search.value;
     } else {
         article_name.innerHTML = search.value;
-        data = _data;
+        gdata = _data;
         /* we've recieved the data, let's load the first question */
         load_question();
     }
@@ -48,7 +47,7 @@ function load_question() {
         q_idx = 0;
         make_request(curQuery, new_article_query);
     } else {
-        sentence = data['sentences'][q_idx];
+        sentence = gdata['sentences'][q_idx];
         text = sentence[0];
         all_gaps = sentence[1]
         gap_index = getRandomInt(0, all_gaps.length-1);
@@ -62,28 +61,87 @@ function load_question() {
             label);
 
         question_body.innerHTML = redacted.text;
-        
-        answers = [];
-        correct_answer_modified = correct[2] /* use the modified answer for the multiple choice */
 
-        var wrong_answers;
-        try {
-            wrong_answers = get_wrong_answers(label, correct_answer_modified, all_gaps, gap_index); 
-            answers.push(correct_answer_modified);
-            answers.push(wrong_answers[0]);
-            answers.push(wrong_answers[1]);
-            shuffle(answers);
-
-            answer_a.innerHTML = answers[0];
-            answer_b.innerHTML = answers[1];
-            answer_c.innerHTML = answers[2];
+        if (label === "LOCATION") {
+            get_wrong_locations(correct_answer);
+        } else {
+            var wrong_answers;
+            try {
+                wrong_answers = get_wrong_answers(label, correct_answer, all_gaps, gap_index); 
+                displayQuestion(correct, wrong_answers);
+            } catch (err) {
+                q_idx += 1;
+                load_question();
+            }
         }
-        catch (err) {
-            q_idx += 1;
-            load_question();
-        }
-        q_idx += 1;
     }
+}
+
+function received_coords(correct, coords) {
+    // if (coords === null) {
+    //     return randomFromArr(['NYC', 'Tokyo', 'London', 'Boston', 'Miami', 
+    //     'San Luis Obispo', 'Sacramento', 'San Francisco', 'Austin', 'Kiev', 
+    //     'Libya', 'Tel Aviv']);
+    // }
+    getNearbyLocations(correct, coords['lat'], coords['lng']);
+}
+
+function received_alternates(correct, alts) {
+    displayQuestion(correct, [alts[0], alts[1]])
+}
+
+function get_wrong_locations(correct_answer) {
+    getCoords(correct_answer);  
+}
+
+function getNearbyLocations(correct, lat, lon) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            results = JSON.parse(xmlHttp.responseText.replace("?","").replace("(","").replace(")","").replace(";",""));
+            received_alternates(correct, [results[0][1], results[1][1]]);
+        }
+    }
+    xmlHttp.open('GET', "http://getnearbycities.geobytes.com/GetNearbyCities?callback=?&radius=100&latitude=" 
+                        + lat + "&longitude=" 
+                        + lon, true);  // `false` makes the request synchronous
+    xmlHttp.send(null);
+}
+
+// asynch GET request to server.py
+function getCoords(query) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            received_coords(query, JSON.parse(xmlHttp.responseText)['results'][0]['geometry']['location']);
+        }
+    }
+    xmlHttp.open('GET', "https://maps.googleapis.com/maps/api/geocode/json?address=" 
+                        + query.replace(" ", "+") 
+                        + "&key=AIzaSyD8U9Br6Pak76wmlPpO2nVsEjgaMLUzPgs", true);
+    xmlHttp.send(null);
+}
+
+function displayQuestion(correct, wrong_answers) {
+    answers = [];
+    var correct_answer_modified;
+
+    if (Array.isArray(correct)) {
+        correct_answer_modified = correct[2]; /* use the modified answer for the multiple choice */
+    } else {
+        correct_answer_modified = correct; 
+    }
+
+    answers.push(correct_answer_modified);
+    answers.push(wrong_answers[0]);
+    answers.push(wrong_answers[1]);
+    shuffle(answers);
+
+    answer_a.innerHTML = answers[0];
+    answer_b.innerHTML = answers[1];
+    answer_c.innerHTML = answers[2];
+
+    q_idx += 1;
 }
 
 function get_wrong_answers(label, correct_answer, other_gaps, gap_index) {
@@ -115,12 +173,7 @@ function get_wrong_answers(label, correct_answer, other_gaps, gap_index) {
 }
 
 function get_wrong_answer(label, correct_answer, other_gaps, gap_index) {
-    if (label === "LOCATION") {
-        return randomFromArr(['NYC', 'Tokyo', 'London', 'Boston', 'Miami', 
-            'San Luis Obispo', 'Sacramento', 'San Francisco', 'Austin', 'Kiev', 
-            'Libya', 'Tel Aviv']);
-        
-    } else if (label === "PROPER") {
+    if (label === "PROPER") {
         return randomFromArr(other_gaps)[1];
     } else {
         num_as_str = correct_answer.toString().replace(",", "").replace("S", "");
@@ -274,3 +327,11 @@ function posOrNeg() {
 function cleanUpNum(num){
     return parseInt(num.toString().replace(",", "").replace("S", ""));
 }
+
+// "https://maps.googleapis.com/maps/api/geocode/json?address=New+York+City&key=AIzaSyD8U9Br6Pak76wmlPpO2nVsEjgaMLUzPgs"
+
+// https://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452&key=AIzaSyD8U9Br6Pak76wmlPpO2nVsEjgaMLUzPgs
+
+// http://getnearbycities.geobytes.com/GetNearbyCities?callback=?&radius=100&latitude=40.714224&longitude=-73.961452
+
+
