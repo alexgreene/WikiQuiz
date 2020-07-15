@@ -1,4 +1,4 @@
-Flask==0.12
+Flask==1.0
 nltk==3.2.2
 requests==2.13.0
 wikipedia==1.4.0
